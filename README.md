@@ -1,2 +1,3 @@
 # Rust Workspace
-Contains mini projects and practice exercises as I learn the Rust language
+
+While I am learning the Rust language, this repo contains some of my mini projects and practice exercises.
