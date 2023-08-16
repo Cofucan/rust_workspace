@@ -1,5 +1,6 @@
 use std::io::{self, Write};
 
+// Defining a trait for the different fizzbuzz functions
 trait FizzBuzz {
     fn exec(&self, start: i32, stop: i32);
 }
@@ -7,6 +8,7 @@ trait FizzBuzz {
 struct FizzBuzzNewline;
 struct FizzBuzzComma;
 
+// FizzBuzz implementation that prints each number on a new line
 impl FizzBuzz for FizzBuzzNewline {
     fn exec(&self, start: i32, stop: i32) {
         let mut is_fb: bool;
@@ -31,6 +33,7 @@ impl FizzBuzz for FizzBuzzNewline {
     }
 }
 
+// FizzBuzz implementation that prints each number separated by a comma
 impl FizzBuzz for FizzBuzzComma {
     fn exec(&self, start: i32, stop: i32) {
         let mut is_fb: bool;
@@ -38,7 +41,6 @@ impl FizzBuzz for FizzBuzzComma {
         for num in start..stop+1 {
             is_fb = false;
 
-            // print!("{num} -> ");
             if num % 3 == 0 {
                 print!("Fizz");
                 is_fb = true;
@@ -56,14 +58,11 @@ impl FizzBuzz for FizzBuzzComma {
     }
 }
 
-fn main() {
+fn handle_name() -> String {
     let mut name;
-    let mut style;
-    let mut stop;
-    let min: i32 = 1;
-    let max: i32 = 1000;
 
     println!("What is your name?");
+    // This loop ensures that the user enters a proper ASCII name string
     loop {
         name = String::new();
         print!("> ");
@@ -80,28 +79,82 @@ fn main() {
         println!("Please enter a valid name.");
     }
 
+    return name;
+}
+
+fn handle_style() -> String {
+    let mut style;
+
+    println!("Do you want the output to be printed on a single comma-separated line (c), or each number on its own line (n)?");
+    // This loop ensures that the user enters `c` or `n` to indicate the style that the
+    // numbers should be printed
+    loop {
+        style = String::new();
+        print!("[c / n]: ");
+        io::stdout().flush().expect("Failed to flush stdout");
+        io::stdin()
+            .read_line(&mut style)
+            .expect("Failed to read input from user");
+
+        if style.trim() == "c" || style.trim() == "n" {
+            break;
+        }
+    };
+
+    return style;
+}
+
+fn handle_play_again() -> bool {
+    let mut play_again;
+
+    loop {
+        play_again = String::new();
+        println!("\nDo you want to play again?");
+        print!("[y / n]: ");
+        io::stdout().flush().expect("Failed to flush stdout");
+        io::stdin()
+            .read_line(&mut play_again)
+            .expect("Failed to read input from user");
+
+        match play_again.trim() {
+            "n" => {
+                println!(); // Print an empty line, just for decoration
+                println!("Bye!");
+                return false;
+            }
+            "y" => {
+                println!();
+                return true;
+            }
+            _ => {}
+        }
+    }
+}
+
+fn main() {
+    let name;
+    let mut style;
+    let mut stop;
+    let mut successful: bool;
+    let min: i32 = 1;
+    let max: i32 = 1000;
+
+    name = handle_name();
     println!("\nHi, {}!", name);
     println!("Lets play FizzBuzz. I will output the first `n` FizzBuzz numbers.");
+    // This loop only breaks when the numbers are printed successfully
     loop {
-        println!("Do you want the output to be printed on a single comma-separated line, or each number on its own line?");
-        loop {
-            style = String::new();
-            print!("[c / n]: ");
-            io::stdout().flush().expect("Failed to flush stdout");
-            io::stdin()
-                .read_line(&mut style)
-                .expect("Failed to read input from user");
+        style = handle_style();
 
-            if style.trim() == "c" || style.trim() == "n" {
-                break;
-            }
-        };
-
+        // Select the function that will be used, based on the style chosen by the user
         let fizz_buzz: Box<dyn FizzBuzz> = match style.trim() {
             "c" => Box::new(FizzBuzzComma),
-            "n" | _ => Box::new(FizzBuzzNewline),
+            "n" => Box::new(FizzBuzzNewline),
+            _ => unreachable!(),
         };
 
+        println!(); // Print an empty line, just for decoration
+        // This loop ensures that the user enters a number within the specified range
         loop {
             stop = String::new();
             println!("Please enter a number between {min} and {max} (press Enter to go with 100).");
@@ -111,22 +164,24 @@ fn main() {
                 .read_line(&mut stop)
                 .expect("Failed to read input from user");
 
-            /* Remove all leading and trailing whitespaces */
+            // Remove all leading and trailing whitespaces
             let trimmed_stop = stop.trim();
 
-            /* If user enters nothing, use the default of 100 */
+            // If user enters nothing, use the default of 100
             if trimmed_stop.is_empty() {
                 fizz_buzz.exec(1, 100);
-                return;
+                successful = true;
+                break;
             }
 
-            /* If the user enters something, try to parse it to an integer */
+            // If the user enters something, try to parse it to an integer
             match trimmed_stop.parse::<i32>() {
                 Ok(stop) => {
                     if (1..1000).contains(&stop) {
                         println!();
                         fizz_buzz.exec(1, stop);
-                        return;
+                        successful = true;
+                        break;
                     }
                     else {
                         println!("Number should be between {min} and {max}!");
@@ -136,6 +191,14 @@ fn main() {
                     println!("Invalid number!");
                 }
             }
+        }
+
+        // If the numbers have been printed successfully, ask the user if they want to play again
+        if successful {
+            if handle_play_again() {
+                continue;
+            }
+            return;
         }
     }
 }
